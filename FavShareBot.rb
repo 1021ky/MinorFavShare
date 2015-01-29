@@ -1,5 +1,11 @@
+# encoding: utf-8
+
 require 'twitter'
-require 'pp'
+require 'yaml'
+# リソースファイルの読み込み
+#load '../config/development.rb'
+
+PARAMETER_FILENAME = "../config/development.yaml" # リソースファイル名
 
 class FavShareBot
 	#SELF_ID = "FavShareBot"
@@ -13,7 +19,8 @@ class FavShareBot
 	# ツイートする
 	def tweet
 		begin
-			login_twitter
+			parameter = load_login_parameter()
+			login_twitter(parameter)
 			loop{
 				selected_follower = get_follower_random
 				favorite_tweet = get_minor_favorite(selected_follower)
@@ -29,7 +36,13 @@ class FavShareBot
 
 	private
 
-		# フォロワーからランダムに一人を選ぶ
+	# リソースファイルからTwitterにログインするためのパラメータを読み込む
+	def load_login_parameter
+		parameters = YAML.load_file(PARAMETER_FILENAME)
+		return parameters["twitter"]
+	end
+
+	# フォロワーからランダムに一人を選ぶ
 	def get_follower_random
 		followers = @client.followers(SELF_ID)
 		followers.map.to_set.to_a.sample
@@ -46,12 +59,12 @@ class FavShareBot
 	end
 
 	# Twitterにログインする
-	def login_twitter
+	def login_twitter(parameter)
 		@client = Twitter::REST::Client.new do |config|
-			config.consumer_key    = "dt86qVzDsE8POCzAZdctMeYFp"
-			config.consumer_secret = "wi7Blcaljf3ZXYj3ft79eEZ8s0gkfz2POaJlkXD8bVY44p3Pog"
-			config.access_token        = "56598769-qmZ8IXkQ4NIEJTRhTQXaLl6TU1TQ5vFJ7kuR5S3e6"
-			config.access_token_secret = "HUzlkMJPr6upCEThLqIn5REFt6XaRpyPwayPa9ur0YDec"
+			config.consumer_key    = parameter["consumer_key"]
+			config.consumer_secret = parameter["consumer_secret"]
+			config.access_token        = parameter["access_token"]
+			config.access_token_secret = parameter["access_token_secret"]
 		end
 	end
 end
