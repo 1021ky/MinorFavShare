@@ -8,8 +8,8 @@ require 'yaml'
 PARAMETER_FILENAME = "../config/development.yaml" # リソースファイル名
 
 class FavShareBot
-	#SELF_ID = "FavShareBot"
-	SELF_ID = "1021ky"
+	SELF_ID = "MinorFavShare"
+
 	MIN_POPULATION = 3
 	MAX_POPULATION = 10
 	@client = nil
@@ -25,9 +25,10 @@ class FavShareBot
 				selected_follower = get_follower_random
 				favorite_tweet = get_minor_favorite(selected_follower)
 				if favorite_tweet != nil
-					p favorite_tweet.text
+					tweet_text =  @client.user(selected_follower).name + " favorited " + favorite_tweet.uri
+					@client.update(tweet_text)
 				end
-				sleep 60 * 5
+				sleep 60 * 10
 			}
 		rescue => ex
 			STDERR.puts ex.class.to_s << " raised in " << ex.backtrace[0].to_s
@@ -45,12 +46,12 @@ class FavShareBot
 	# フォロワーからランダムに一人を選ぶ
 	def get_follower_random
 		followers = @client.followers(SELF_ID)
-		followers.map.to_set.to_a.sample
+		followers.map.to_set.to_a.sample(1)
 	end
 
 	# 指定されたユーザのお気に入りの中でまあまあの人気のものを取得
 	def get_minor_favorite(user)
-		@client.favorites.shuffle.each{|favorite|
+		@client.favorites(user).to_set.each{|favorite|
 			popularity = favorite.favorite_count
 			if popularity >= MIN_POPULATION && popularity <= MAX_POPULATION
 				return favorite
@@ -69,5 +70,11 @@ class FavShareBot
 	end
 end
 
+class TwitterUtil
+
+	def format_tweet_within_140_text(tweet)
+
+	end
+end
 bot  = FavShareBot.new
 bot.tweet
